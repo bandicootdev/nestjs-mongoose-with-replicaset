@@ -1,0 +1,55 @@
+version: "3"
+services:
+  mongo-replica-1:
+    image: mongo:latest
+    container_name: mongodb-replica-1
+#    hostname: mongodb-replica-1
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+    ports:
+      - "27017:27017"
+#    expose:
+#      - "27017"
+    restart: always
+    volumes:
+      - mongodata1:/data/db
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+
+  mongo-replica-2:
+    image: mongo:latest
+    container_name: mongodb-replica-2
+#    hostname: mongodb-replica-2
+    env_file:
+      - .env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
+    ports:
+      - "27018:27018"
+#    expose:
+#      - "27017"
+    restart: always
+    volumes:
+      - mongodata2:/data/db
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
+
+  mongosetup:
+    image: mongo:latest
+    container_name: "mongosetup"
+    depends_on:
+      - mongo-replica-1
+      - mongo-replica-2
+    volumes:
+      - .:/mongo-setup
+    restart: "no"
+    entrypoint: ["bash","/mongo-setup/docker-entrypoint.sh"]
+
+
+volumes:
+  mongodata1:
+  mongodata2:
